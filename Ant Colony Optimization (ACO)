@@ -1,0 +1,91 @@
+import numpy as np
+
+def ACO(n_ants=10, iterations=100):
+
+    # Distance matrix between cities
+    distance = np.array([
+        [0, 2, 9, 10],
+        [2, 0, 6, 4],
+        [9, 6, 0, 8],
+        [10, 4, 8, 0]
+    ])
+
+    n_cities = len(distance)
+
+    pheromone = np.ones((n_cities, n_cities))
+
+    alpha = 1
+    beta = 2
+    evaporation = 0.5
+
+    best_path = None
+    best_distance = float('inf')
+
+    for _ in range(iterations):
+
+        all_paths = []
+
+        for ant in range(n_ants):
+
+            path = [np.random.randint(n_cities)]
+
+            while len(path) < n_cities:
+
+                current = path[-1]
+
+                probabilities = []
+
+                for city in range(n_cities):
+
+                    if city not in path:
+                        value = (
+                            pheromone[current][city] ** alpha
+                            * (1 / distance[current][city]) ** beta
+                        )
+                    else:
+                        value = 0
+
+                    probabilities.append(value)
+
+                probabilities = np.array(probabilities)
+                probabilities /= probabilities.sum()
+
+                next_city = np.random.choice(
+                    n_cities, p=probabilities
+                )
+
+                path.append(next_city)
+
+            path_distance = sum(
+                distance[path[i]][path[i + 1]]
+                for i in range(n_cities - 1)
+            )
+
+            path_distance += distance[path[-1]][path[0]]
+
+            all_paths.append((path, path_distance))
+
+            if path_distance < best_distance:
+                best_distance = path_distance
+                best_path = path.copy()
+
+        # Pheromone evaporation
+        pheromone *= (1 - evaporation)
+
+        # Pheromone update
+        for path, d in all_paths:
+
+            for i in range(n_cities):
+                a = path[i]
+                b = path[(i + 1) % n_cities]
+
+                pheromone[a][b] += 1 / d
+                pheromone[b][a] += 1 / d
+
+    return best_path, best_distance
+
+
+path, distance = ACO()
+
+print("Best Path:", path)
+print("Best Distance:", distance)
