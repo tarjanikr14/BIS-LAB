@@ -1,0 +1,46 @@
+import numpy as np
+
+def fitness(x):
+    return np.sum(x**2)
+
+def GA(pop_size=30, generations=100, dim=2):
+
+    population = np.random.uniform(-10, 10, (pop_size, dim))
+
+    for gen in range(generations):
+
+        # Sort population according to fitness
+        population = sorted(population, key=fitness)
+
+        # Elitism
+        new_population = [population[0].copy()]
+
+        while len(new_population) < pop_size:
+
+            # Parent selection
+            p1 = population[np.random.randint(0, pop_size // 2)]
+            p2 = population[np.random.randint(0, pop_size // 2)]
+
+            # Crossover
+            alpha = np.random.rand()
+            child = alpha * p1 + (1 - alpha) * p2
+
+            # Mutation
+            if np.random.rand() < 0.1:
+                child += np.random.normal(0, 0.5, dim)
+
+            child = np.clip(child, -10, 10)
+
+            new_population.append(child)
+
+        population = np.array(new_population)
+
+    best = min(population, key=fitness)
+
+    return best, fitness(best)
+
+
+best, score = GA()
+
+print("Best Solution:", best)
+print("Best Fitness:", score)
