@@ -1,0 +1,46 @@
+import numpy as np
+
+# Objective function
+def fitness(x):
+    return np.sum(x**2)
+
+# Parallel Cellular Algorithm
+def PCA(pop_size=20, generations=100, dim=2):
+    population = np.random.uniform(-10, 10, (pop_size, dim))
+
+    for gen in range(generations):
+        new_population = population.copy()
+
+        for i in range(pop_size):
+            # Select neighboring cells
+            neighbors = [
+                (i - 1) % pop_size,
+                (i + 1) % pop_size
+            ]
+
+            best_neighbor = min(
+                neighbors,
+                key=lambda j: fitness(population[j])
+            )
+
+            # Generate new solution
+            new_solution = (
+                population[i] +
+                np.random.rand() *
+                (population[best_neighbor] - population[i])
+            )
+
+            # Selection
+            if fitness(new_solution) < fitness(population[i]):
+                new_population[i] = new_solution
+
+        population = new_population
+
+    best = min(population, key=fitness)
+    return best, fitness(best)
+
+
+best, score = PCA()
+
+print("Best Solution:", best)
+print("Best Fitness:", score)
