@@ -1,0 +1,51 @@
+import numpy as np
+
+def fitness(x):
+    return np.sum(x**2)
+
+def PSO(n_particles=30, iterations=100, dim=2):
+
+    w = 0.7
+    c1 = 1.5
+    c2 = 1.5
+
+    position = np.random.uniform(-10, 10, (n_particles, dim))
+    velocity = np.random.uniform(-1, 1, (n_particles, dim))
+
+    personal_best = position.copy()
+
+    global_best = personal_best[
+        np.argmin([fitness(x) for x in personal_best])
+    ].copy()
+
+    for _ in range(iterations):
+
+        for i in range(n_particles):
+
+            r1 = np.random.rand(dim)
+            r2 = np.random.rand(dim)
+
+            velocity[i] = (
+                w * velocity[i]
+                + c1 * r1 * (personal_best[i] - position[i])
+                + c2 * r2 * (global_best - position[i])
+            )
+
+            position[i] += velocity[i]
+
+            if fitness(position[i]) < fitness(personal_best[i]):
+                personal_best[i] = position[i].copy()
+
+        best_index = np.argmin(
+            [fitness(x) for x in personal_best]
+        )
+
+        global_best = personal_best[best_index].copy()
+
+    return global_best, fitness(global_best)
+
+
+best, score = PSO()
+
+print("Best Solution:", best)
+print("Best Fitness:", score)
