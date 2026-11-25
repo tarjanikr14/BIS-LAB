@@ -1,0 +1,100 @@
+import numpy as np
+import random
+
+# Target function: y = x*x + x + 1
+
+def target(x):
+    return x**2 + x + 1
+
+# Available functions and terminals
+functions = ['+', '-', '*']
+terminals = ['x', '1', '2']
+
+def generate_gene(length=7):
+    return [random.choice(functions + terminals)
+            for _ in range(length)]
+
+def evaluate_gene(gene, x):
+
+    stack = []
+
+    for symbol in reversed(gene):
+
+        if symbol == 'x':
+            stack.append(x)
+
+        elif symbol in ['1', '2']:
+            stack.append(float(symbol))
+
+        elif symbol in functions:
+
+            if len(stack) < 2:
+                continue
+
+            a = stack.pop()
+            b = stack.pop()
+
+            if symbol == '+':
+                stack.append(a + b)
+
+            elif symbol == '-':
+                stack.append(a - b)
+
+            elif symbol == '*':
+                stack.append(a * b)
+
+    return stack[-1] if stack else 0
+
+
+def fitness(gene):
+
+    error = 0
+
+    for x in np.linspace(-5, 5, 20):
+
+        predicted = evaluate_gene(gene, x)
+        actual = target(x)
+
+        error += (predicted - actual) ** 2
+
+    return error
+
+
+def GE(pop_size=30, generations=50):
+
+    population = [
+        generate_gene() for _ in range(pop_size)
+    ]
+
+    for _ in range(generations):
+
+        population.sort(key=fitness)
+
+        new_population = population[:2]
+
+        while len(new_population) < pop_size:
+
+            parent = random.choice(population[:15])
+
+            child = parent.copy()
+
+            # Mutation
+            index = random.randint(0, len(child) - 1)
+
+            child[index] = random.choice(
+                functions + terminals
+            )
+
+            new_population.append(child)
+
+        population = new_population
+
+    best = min(population, key=fitness)
+
+    return best, fitness(best)
+
+
+best, score = GE()
+
+print("Best Gene:", best)
+print("Best Fitness:", score)
