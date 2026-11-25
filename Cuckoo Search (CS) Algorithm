@@ -1,0 +1,65 @@
+import numpy as np
+
+def fitness(x):
+    return np.sum(x**2)
+
+def levy_flight(dim):
+
+    beta = 1.5
+
+    sigma = (
+        np.math.gamma(1 + beta)
+        * np.sin(np.pi * beta / 2)
+        / (
+            np.math.gamma((1 + beta) / 2)
+            * beta
+            * 2 ** ((beta - 1) / 2)
+        )
+    ) ** (1 / beta)
+
+    u = np.random.normal(0, sigma, dim)
+    v = np.random.normal(0, 1, dim)
+
+    return u / (np.abs(v) ** (1 / beta))
+
+
+def CS(n_nests=25, iterations=100, dim=2):
+
+    nests = np.random.uniform(-10, 10, (n_nests, dim))
+
+    pa = 0.25
+
+    best = min(nests, key=fitness).copy()
+
+    for _ in range(iterations):
+
+        for i in range(n_nests):
+
+            step = levy_flight(dim)
+
+            new_solution = nests[i] + 0.01 * step * (
+                nests[i] - best
+            )
+
+            new_solution = np.clip(new_solution, -10, 10)
+
+            j = np.random.randint(n_nests)
+
+            if fitness(new_solution) < fitness(nests[j]):
+                nests[j] = new_solution
+
+        # Abandon some nests
+        for i in range(n_nests):
+
+            if np.random.rand() < pa:
+                nests[i] = np.random.uniform(-10, 10, dim)
+
+        best = min(nests, key=fitness).copy()
+
+    return best, fitness(best)
+
+
+best, score = CS()
+
+print("Best Solution:", best)
+print("Best Fitness:", score)
